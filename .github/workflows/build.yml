@@ -1,58 +1,19 @@
 name: Build and publish
 
 on:
-  push:
-    branches: [main]
-  schedule:
-    - cron: '0 5 * * *'
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency: publish-docker-hub-${{ github.ref }}
+concurrency: publish-selkies-dev
 
 env:
   IMAGE_NAME: etnperlong/beeper
 
 jobs:
-  check:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-26.04
-    outputs:
-      version: ${{ steps.release.outputs.version }}
-      published: ${{ steps.tag.outputs.published }}
-    steps:
-      - name: Resolve Beeper stable release
-        id: release
-        run: |
-          url=$(curl -fsSI -o /dev/null -w '%{redirect_url}' --max-time 30 \
-            https://api.beeper.com/desktop/download/linux/x64/stable/com.automattic.beeper.desktop)
-          if [[ ! $url =~ ^https://beeper-desktop\.download\.beeper\.com/builds/Beeper-(4\.[0-9]+\.[0-9]+)-x86_64\.AppImage$ ]]; then
-            echo "Unexpected Beeper stable download URL: $url" >&2
-            exit 1
-          fi
-          echo "version=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
-      - name: Check Docker Hub version tag
-        id: tag
-        if: github.event_name == 'schedule'
-        env:
-          BEEPER_VERSION: ${{ steps.release.outputs.version }}
-        run: |
-          status=$(curl -sSI -o /dev/null -w '%{http_code}' --max-time 30 \
-            "https://hub.docker.com/v2/namespaces/${IMAGE_NAME%/*}/repositories/${IMAGE_NAME#*/}/tags/$BEEPER_VERSION")
-          case "$status" in
-            200)
-              echo "Already published: $IMAGE_NAME:$BEEPER_VERSION"
-              echo "published=true" >> "$GITHUB_OUTPUT"
-              ;;
-            404) echo "published=false" >> "$GITHUB_OUTPUT" ;;
-            *) echo "Docker Hub tag check failed (HTTP $status)" >&2; exit 1 ;;
-          esac
-
   build:
-    needs: check
-    if: github.event_name != 'schedule' || needs.check.outputs.published == 'false'
+    if: github.ref == 'refs/heads/selkies-dev-preview'
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
@@ -70,8 +31,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           pull: true
           push: true
-          build-args: BEEPER_VERSION=${{ needs.check.outputs.version }}
-          tags: |
-            ${{ env.IMAGE_NAME }}:latest
-            ${{ env.IMAGE_NAME }}:${{ needs.check.outputs.version }}
+          build-args: SELKIES_TAG=dev-4d7ee28c-ls23
+          tags: ${{ env.IMAGE_NAME }}:selkies-dev
           labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}

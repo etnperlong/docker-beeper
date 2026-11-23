@@ -43,7 +43,9 @@ volumes:
 
 The Dockerfile defaults to the current Selkies `debiantrixie` tag. Add `--build-arg SELKIES_TAG=<versioned-tag>` to pin the base.
 
-GitHub Actions checks the Beeper stable channel daily at 05:00 UTC and builds if the version tag is missing on Docker Hub. Pushes to `main` and manual runs can rebuild an existing version. Images are tagged `latest` and the plain version (for example, `4.3.340`). Dependabot opens pull requests for GitHub Actions dependency updates.
+The `main` branch publishes `latest` and the plain Beeper version (for example, `4.3.340`). Scheduled runs on `main` check the stable channel daily at 05:00 UTC and build if that version tag is missing on Docker Hub. Dependabot opens pull requests for GitHub Actions dependency updates.
+
+To publish the experimental Selkies build, manually run **Build and publish** on the `selkies-dev-preview` branch. It builds the Beeper version pinned in the Dockerfile for amd64 and arm64 using Selkies `dev-4d7ee28c-ls23` and publishes only `etnperlong/beeper:selkies-dev`. For testing, use that tag and a separate `/config` volume from your stable instance.
 
 ## Network access
 
