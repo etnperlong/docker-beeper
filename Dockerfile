@@ -26,6 +26,7 @@ RUN set -eu; \
 COPY --chmod=0755 rootfs/startapp.sh /startapp.sh
 COPY --chmod=0755 rootfs/autostart /defaults/autostart
 COPY --chmod=0755 rootfs/autostart /defaults/autostart_wayland
+COPY LICENSE THIRD_PARTY_NOTICES.md /usr/share/doc/docker-beeper/
 
 ENV TITLE=Beeper \
     PUID=1000 \
