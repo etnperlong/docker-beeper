@@ -8,7 +8,7 @@ Run [Beeper Desktop](https://www.beeper.com/download) v4 in your browser. This u
 
 ## Quick start
 
-Build from the repository root with `docker build -t etnperlong/beeper:latest .`. Once the image is published to [Docker Hub](https://hub.docker.com/r/etnperlong/beeper), you can skip the build. For Podman, replace `docker` with `podman`.
+Build from the repository root with `docker build --pull -t etnperlong/beeper:latest .`. Once the image is published to [Docker Hub](https://hub.docker.com/r/etnperlong/beeper), you can skip the build. For Podman, use `podman build --pull=always` and `podman run`.
 
 ```sh
 docker run -d --name beeper --restart unless-stopped \
@@ -40,6 +40,10 @@ volumes:
 ```
 
 </details>
+
+The Dockerfile defaults to the current Selkies `debiantrixie` tag. Add `--build-arg SELKIES_TAG=<versioned-tag>` to pin the base.
+
+GitHub Actions checks the Beeper stable channel daily at 05:00 UTC and builds if the version tag is missing on Docker Hub. Pushes to `main` and manual runs can rebuild an existing version. Images are tagged `latest` and the plain version (for example, `4.3.340`). Dependabot opens pull requests for GitHub Actions dependency updates.
 
 ## Network access
 
