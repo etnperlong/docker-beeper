@@ -1,4 +1,4 @@
-ARG SELKIES_TAG=debiantrixie
+ARG SELKIES_TAG=dev-4d7ee28c-ls23
 FROM ghcr.io/linuxserver/baseimage-selkies:${SELKIES_TAG}
 
 ARG BEEPER_VERSION=4.3.340
@@ -9,6 +9,12 @@ RUN set -eu; \
         arm64) beeper_arch=arm64 ;; \
         *) echo 'Beeper supports only amd64 and arm64' >&2; exit 1 ;; \
     esac; \
+    . /etc/os-release; \
+    if [ "$ID" = ubuntu ]; then \
+        curl -fsSL -o /usr/share/keyrings/mozilla.asc https://packages.mozilla.org/apt/repo-signing-key.gpg; \
+        printf '%s\n' '3ecc63922b7795eb23fdc449ff9396f9114cb3cf186d6f5b53ad4cc3ebfbb11f  /usr/share/keyrings/mozilla.asc' | sha256sum -c -; \
+        printf '%s\n' 'deb [signed-by=/usr/share/keyrings/mozilla.asc] https://packages.mozilla.org/apt mozilla main' > /etc/apt/sources.list.d/mozilla.list; \
+    fi; \
     apt-get update; \
     apt-get install -y --no-install-recommends firefox-esr libsecret-1-0; \
     rm -rf /var/lib/apt/lists/*; \

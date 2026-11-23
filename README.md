@@ -4,7 +4,7 @@
 [![Platforms: amd64 and arm64](https://img.shields.io/badge/Platforms-amd64%20%2F%20arm64-555?style=for-the-badge)](.github/workflows/build.yml)
 [![Repository code: MIT](https://img.shields.io/badge/Code-MIT-2EA44F?style=for-the-badge)](LICENSE)
 
-Run [Beeper Desktop](https://www.beeper.com/download) v4 in your browser. This unofficial image uses [LinuxServer.io's Selkies base](https://github.com/linuxserver/docker-baseimage-selkies) on Debian 13 with Wayland.
+Run [Beeper Desktop](https://www.beeper.com/download) v4 in your browser. This unofficial image uses [LinuxServer.io's Selkies base](https://github.com/linuxserver/docker-baseimage-selkies) on Ubuntu 26.04 with Wayland.
 
 ## Quick start
 
@@ -41,7 +41,7 @@ volumes:
 
 </details>
 
-The Dockerfile defaults to the current Selkies `debiantrixie` tag. Add `--build-arg SELKIES_TAG=<versioned-tag>` to pin the base.
+The Dockerfile pins Selkies to [`dev-4d7ee28c-ls23`](https://github.com/linuxserver/docker-baseimage-selkies/releases/tag/dev-4d7ee28c-ls23), the lighter upstream prerelease. Override it with `--build-arg SELKIES_TAG=<versioned-tag>`.
 
 GitHub Actions checks the Beeper stable channel daily at 05:00 UTC and builds if the version tag is missing on Docker Hub. Pushes to `main` and manual runs can rebuild an existing version. Images are tagged `latest` and the plain version (for example, `4.3.340`). Dependabot opens pull requests for GitHub Actions dependency updates.
 
