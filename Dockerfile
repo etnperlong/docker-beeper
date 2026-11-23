@@ -1,4 +1,5 @@
-FROM ghcr.io/linuxserver/baseimage-selkies:debiantrixie-f7632021-ls153
+ARG SELKIES_TAG=debiantrixie
+FROM ghcr.io/linuxserver/baseimage-selkies:${SELKIES_TAG}
 
 ARG BEEPER_VERSION=4.3.340
 
