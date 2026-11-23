@@ -1,13 +1,14 @@
 # Beeper Desktop on Selkies
 
-Run [Beeper Desktop](https://www.beeper.com/download) v4 in your browser on a Linux host. This unofficial image uses [LinuxServer.io's Selkies base](https://github.com/linuxserver/docker-baseimage-selkies) (Debian 13, Wayland) and targets `linux/amd64` and `linux/arm64`.
+[![Docker image: etnperlong/beeper](https://img.shields.io/badge/Docker-etnperlong%2Fbeeper-2496ED?logo=docker&logoColor=white&style=for-the-badge)](#quick-start)
+[![Platforms: amd64 and arm64](https://img.shields.io/badge/Platforms-amd64%20%2F%20arm64-555?style=for-the-badge)](.github/workflows/build.yml)
+[![Repository code: MIT](https://img.shields.io/badge/Code-MIT-2EA44F?style=for-the-badge)](LICENSE)
 
-## Deploy
+Run [Beeper Desktop](https://www.beeper.com/download) v4 in your browser. This unofficial image uses [LinuxServer.io's Selkies base](https://github.com/linuxserver/docker-baseimage-selkies) on Debian 13 with Wayland.
 
-> [!IMPORTANT]
-> Keep Beeper on localhost, a trusted LAN, or a private VPN. The web desktop has no authentication by default. Anyone who can open it can control the signed-in Beeper session.
+## Quick start
 
-Use `etnperlong/beeper:latest` from [Docker Hub](https://hub.docker.com/r/etnperlong/beeper) when published, or build it locally from this repository with `docker build -t etnperlong/beeper:latest .`. The same commands work with Podman by replacing `docker` with `podman`.
+Build from the repository root with `docker build -t etnperlong/beeper:latest .`. Once the image is published to [Docker Hub](https://hub.docker.com/r/etnperlong/beeper), you can skip the build. For Podman, replace `docker` with `podman`.
 
 ```sh
 docker run -d --name beeper --restart unless-stopped \
@@ -17,20 +18,48 @@ docker run -d --name beeper --restart unless-stopped \
   etnperlong/beeper:latest
 ```
 
-Open <https://localhost:3001/>. The container generates a self-signed certificate on first start. Sign in with email or Google; Google opens Firefox inside the remote desktop to receive the sign-in callback.
+Open **<https://localhost:3001/>**. Expect a certificate warning on first use: the container generates a self-signed certificate. Google sign-in opens Firefox inside the remote desktop; email sign-in stays in Beeper.
 
-### Network access
+<details>
+<summary>Deploy with Docker Compose instead</summary>
 
-- **Trusted LAN or VPN:** bind HTTPS port `3001` to the host's private IP instead of `127.0.0.1`, restrict access with a firewall, and set `CUSTOM_USER` and `PASSWORD` for Basic Auth over HTTPS.
-- **Public access, only if needed:** put Beeper behind a [reverse proxy](https://docs.linuxserver.io/selkies/user-guide/reverse-proxy/) with a browser-trusted TLS certificate and authentication such as Authelia or Authentik with MFA. Protect both HTTP requests and WebSocket upgrades. On a private container network, proxy to `http://beeper:3000` (using the container or service name) and omit the `-p` mapping. Do not publish either container port to the internet or rely on built-in Basic Auth alone.
+Save as `compose.yaml` and run `docker compose up -d`.
 
-> [!WARNING]
-> Beeper runs without the Electron sandbox. Do not use `--privileged` or mount the host's Docker socket.
+```yaml
+services:
+  beeper:
+    image: etnperlong/beeper:latest
+    restart: unless-stopped
+    shm_size: 1g
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - beeper-config:/config
+volumes:
+  beeper-config:
+```
 
-### Data and logs
+</details>
 
-- `/config` stores the Beeper profile and session data. Keep the volume private and reuse it when updating the container.
-- For a bind mount, set `PUID` and `PGID` to match the host directory owner (both default to `1000`).
-- Check startup with `docker logs beeper` and application output with `docker exec beeper cat /config/beeper.log`.
+## Network access
 
-See the [Selkies configuration reference](https://docs.linuxserver.io/selkies/user-guide/configuration/) for other settings. Repository code is [MIT-licensed](LICENSE); bundled components retain [their upstream terms](THIRD_PARTY_NOTICES.md).
+> [!IMPORTANT]
+> The web desktop has no authentication by default. Anyone who can reach it can control the signed-in Beeper session. Prefer localhost, a trusted LAN, or a private VPN.
+
+| Access | Setup |
+| --- | --- |
+| Same host | Keep the example's loopback binding on HTTPS port `3001`. |
+| Trusted LAN or VPN | Bind `3001` to the host's private IP, restrict access with a firewall, and set `CUSTOM_USER` and `PASSWORD` for Basic Auth over HTTPS. |
+| Public internet, only if needed | Remove the port mapping. On a private container network, [proxy to `http://beeper:3000`](https://docs.linuxserver.io/selkies/user-guide/reverse-proxy/) using the service/container name. Terminate TLS with a trusted certificate and enforce authentication with MFA on both HTTP requests and WebSocket upgrades. Do not rely on built-in Basic Auth alone. |
+
+Beeper runs without the Electron sandbox. Do not use `--privileged` or mount the host's Docker socket.
+
+## Data and logs
+
+| Item | What to know |
+| --- | --- |
+| `/config` | Stores your profile and session. Keep the volume private and reuse it across updates. |
+| `PUID` / `PGID` | Default: `1000` / `1000`. Match the bind-mount directory owner if you use a host path. |
+| Logs | Use `docker logs beeper` for container startup and `docker exec beeper cat /config/beeper.log` for Beeper output. With Compose, use `docker compose logs beeper` and `docker compose exec beeper cat /config/beeper.log`. |
+
+See the [Selkies configuration reference](https://docs.linuxserver.io/selkies/user-guide/configuration/) for more settings. The [MIT license](LICENSE) covers this repository's code; [bundled components](THIRD_PARTY_NOTICES.md) retain their upstream terms.
